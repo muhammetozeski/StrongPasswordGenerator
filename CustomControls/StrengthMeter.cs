@@ -163,7 +163,7 @@ public class StrengthMeter : Control
     private static (string TierName, Color TierColor) GetStrengthRating(UInt128 crackTimeMs)
     {
         if (crackTimeMs < 86_400_000) return ("Weak", Theme.StrengthWeakColor); // < 1 day
-        if (crackTimeMs < 31_536_000_000) return ("Moderate", Theme.StrengthModerateColor); // < 1 year
+        if (crackTimeMs < 15_768_000_000) return ("Moderate", Theme.StrengthModerateColor); // < 6 months
         if (crackTimeMs < 315_360_000_000_000) return ("Strong", Theme.StrengthStrongColor); // < 10,000 years
         return ("Ultra Secure", Theme.StrengthUltraColor);
     }

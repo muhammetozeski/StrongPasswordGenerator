@@ -178,11 +178,11 @@ public static class PasswordGenerator
     public static readonly ThreatProfile[] ThreatProfiles = new ThreatProfile[]
     {
         new ThreatProfile("Online Web Attack", 100, "Slow web attacks targeting weak servers or systems with rate limiting (e.g., forum logins)."),
-        new ThreatProfile("Office PC CPU", 10_000, "Basic amateur attempts utilizing the CPU of a standard office computer."),
-        new ThreatProfile("Standard GPU", 10_000_000, "An entry-level graphics card used by a targeted attacker aiming at social media accounts."),
-        new ThreatProfile("High-End GPU", 1_000_000_000, "A single state-of-the-art gaming graphics card (e.g., RTX 4090) used by a professional individual hacker."),
-        new ThreatProfile("Hacker Group", 100_000_000_000, "A small-scale mining rig consisting of 8-10 powerful graphics cards. Represents an organized group."),
-        new ThreatProfile("Medium Botnet", 10_000_000_000_000, "Massive botnet networks composed of thousands of compromised zombie computers. Aimed at corporate servers."),
+        new ThreatProfile("Modern CPU (Ryzen/Core i9)", 2_000_000_000, "A fast modern desktop processor computing common fast hashes (e.g., MD5)."),
+        new ThreatProfile("Standard GPU (RTX 3060)", 30_000_000_000, "An entry-level graphics card used by a targeted attacker aiming at your accounts."),
+        new ThreatProfile("High-End GPU (RTX 4090)", 164_000_000_000, "A single state-of-the-art gaming graphics card used by a professional individual hacker."),
+        new ThreatProfile("Hacker Group (8x RTX 4090)", 1_312_000_000_000, "A small-scale mining rig consisting of 8 high-end graphics cards. Represents an organized group."),
+        new ThreatProfile("Medium Botnet", 100_000_000_000_000, "Massive botnet networks composed of thousands of compromised zombie computers."),
         new ThreatProfile("State-Sponsored", 1_000_000_000_000_000, "The world's most advanced data centers and supercomputers. State-backed power targeting national defense.")
     };
 
