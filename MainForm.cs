@@ -294,9 +294,10 @@ public partial class MainForm : Form
 
         _trackThreatLevel = new TrackBar
         {
-            Minimum = 0,
-            Maximum = 6,
-            Value = 3, // Default to High-End GPU
+            Minimum = 200,
+            Maximum = 1500,
+            Value = 900, // Default to 10^9 = 1 GH/s
+            TickFrequency = 100,
             TickStyle = TickStyle.BottomRight,
             Dock = DockStyle.Fill,
             Margin = new Padding(0, 0, 0, 16)
@@ -561,9 +562,10 @@ public partial class MainForm : Form
 
     private void UpdateThreatDescription()
     {
-        int index = _trackThreatLevel.Value;
-        var profile = PasswordGenerator.ThreatProfiles[index];
-        _lblThreatDesc.Text = $"{profile.Title}\n{profile.Description}";
+        ulong hashRate = GetCurrentHashRate();
+        var profile = GetProfileForHashRate(hashRate);
+        string formattedHashRate = FormatHashRateString(hashRate);
+        _lblThreatDesc.Text = $"Attacker Power: {formattedHashRate}\nTarget Profile: {profile.Title}\n{profile.Description}";
     }
 
     private void UpdateCrackTimeDisplay()
@@ -571,15 +573,44 @@ public partial class MainForm : Form
         string pass = _txtPassword.Text;
         if (string.IsNullOrEmpty(pass)) return;
         
-        int index = _trackThreatLevel.Value;
-        var profile = PasswordGenerator.ThreatProfiles[index];
+        ulong hashRate = GetCurrentHashRate();
         bool isQuantum = _toggleQuantum.Checked;
         
         _strengthMeter.QuantumThreatActive = isQuantum;
         _strengthMeter.EntropyBits = PasswordGenerator.CalculateEntropyBits(pass);
         
-        var crackTimeMs = PasswordGenerator.CalculateCrackTimeMilliseconds(pass, profile.HashesPerSecond, isQuantum);
+        var crackTimeMs = PasswordGenerator.CalculateCrackTimeMilliseconds(pass, hashRate, isQuantum);
         _strengthMeter.CrackTimeText = PasswordGenerator.FormatCrackTime(crackTimeMs);
+    }
+
+    private ulong GetCurrentHashRate()
+    {
+        double exponent = _trackThreatLevel.Value / 100.0;
+        return (ulong)Math.Pow(10, exponent);
+    }
+
+    private PasswordGenerator.ThreatProfile GetProfileForHashRate(ulong hashRate)
+    {
+        var profiles = PasswordGenerator.ThreatProfiles;
+        for (int i = profiles.Length - 1; i >= 0; i--)
+        {
+            if (hashRate >= (ulong)profiles[i].HashesPerSecond)
+            {
+                return profiles[i];
+            }
+        }
+        return profiles[0];
+    }
+
+    private string FormatHashRateString(ulong hashRate)
+    {
+        string exact = $"{hashRate:N0} H/s";
+        if (hashRate >= 1_000_000_000_000_000) return $"{exact} (1 PetaHash/s)";
+        if (hashRate >= 1_000_000_000_000) return $"{exact} ({hashRate / 1_000_000_000_000.0:F1} TH/s)";
+        if (hashRate >= 1_000_000_000) return $"{exact} ({hashRate / 1_000_000_000.0:F1} GH/s)";
+        if (hashRate >= 1_000_000) return $"{exact} ({hashRate / 1_000_000.0:F1} MH/s)";
+        if (hashRate >= 1_000) return $"{exact} ({hashRate / 1_000.0:F1} kH/s)";
+        return exact;
     }
 
     /// <summary>
