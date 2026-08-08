@@ -177,13 +177,13 @@ public static class PasswordGenerator
 
     public static readonly ThreatProfile[] ThreatProfiles = new ThreatProfile[]
     {
-        new ThreatProfile("Online Web Attack (100 H/s)", 100, "Zayıf bir sunucuya veya hız sınırlandırması olan online bir sisteme yönelik yavaş web saldırısı. (Forum şifreleri vb.)"),
-        new ThreatProfile("Office PC CPU (10 kH/s)", 10_000, "Sıradan bir ofis bilgisayarının sadece işlemcisi (CPU) kullanılarak yapılan temel amatör denemeler."),
-        new ThreatProfile("Standard GPU (10 MH/s)", 10_000_000, "Giriş seviyesi bir ekran kartı. Sosyal medya hesaplarını kırmayı amaçlayan hedefli bir saldırgan."),
-        new ThreatProfile("High-End GPU (1 GH/s)", 1_000_000_000, "Son teknoloji tek bir oyuncu ekran kartı (örn. RTX 4090). Profesyonel kişisel bir hacker."),
-        new ThreatProfile("Hacker Group (100 GH/s)", 100_000_000_000, "8-10 adet güçlü ekran kartından oluşan küçük çaplı bir madenci (mining) teçhizatı. Organize bir grup."),
-        new ThreatProfile("Medium Botnet (10 TH/s)", 10_000_000_000_000, "Ele geçirilmiş binlerce zombi bilgisayardan oluşan devasa botnet ağları. Şirket sunucularına yönelik saldırı."),
-        new ThreatProfile("State-Sponsored (1 PH/s)", 1_000_000_000_000_000, "Dünyanın en gelişmiş veri merkezleri ve süper bilgisayarları. Ulusal savunmayı hedefleyen devlet destekli güç.")
+        new ThreatProfile("Online Web Attack", 100, "Slow web attacks targeting weak servers or systems with rate limiting (e.g., forum logins)."),
+        new ThreatProfile("Office PC CPU", 10_000, "Basic amateur attempts utilizing the CPU of a standard office computer."),
+        new ThreatProfile("Standard GPU", 10_000_000, "An entry-level graphics card used by a targeted attacker aiming at social media accounts."),
+        new ThreatProfile("High-End GPU", 1_000_000_000, "A single state-of-the-art gaming graphics card (e.g., RTX 4090) used by a professional individual hacker."),
+        new ThreatProfile("Hacker Group", 100_000_000_000, "A small-scale mining rig consisting of 8-10 powerful graphics cards. Represents an organized group."),
+        new ThreatProfile("Medium Botnet", 10_000_000_000_000, "Massive botnet networks composed of thousands of compromised zombie computers. Aimed at corporate servers."),
+        new ThreatProfile("State-Sponsored", 1_000_000_000_000_000, "The world's most advanced data centers and supercomputers. State-backed power targeting national defense.")
     };
 
     /// <summary>

@@ -134,13 +134,13 @@ public class StrengthMeter : Control
         using var trackBrush = new SolidBrush(Theme.CardBorderColor);
         g.FillPath(trackBrush, trackPath);
 
-        // Filled strength bar (Logarithmic scale based on time, 100 years = 100%)
-        // 100 years = 3,153,600,000,000 ms. Log10(3.15 * 10^12) ~ 12.5
+        // Filled strength bar (Logarithmic scale based on time, 10,000 years = 100%)
+        // 10,000 years = 315,360,000,000,000 ms. Log10(3.15 * 10^14) ~ 14.5
         double percentage = 1.0;
-        if (_crackTimeMs < 3_153_600_000_000)
+        if (_crackTimeMs < 315_360_000_000_000)
         {
             double msDouble = Math.Max(1.0, (double)_crackTimeMs);
-            percentage = Math.Clamp(Math.Log10(msDouble) / 12.5, 0.04, 1.0);
+            percentage = Math.Clamp(Math.Log10(msDouble) / 14.5, 0.04, 1.0);
         }
 
         var fillWidth = (int)(Width * percentage);
@@ -162,9 +162,9 @@ public class StrengthMeter : Control
     /// </summary>
     private static (string TierName, Color TierColor) GetStrengthRating(UInt128 crackTimeMs)
     {
-        if (crackTimeMs < 3_600_000) return ("Weak", Theme.StrengthWeakColor); // < 1 hour
-        if (crackTimeMs < 2_592_000_000) return ("Moderate", Theme.StrengthModerateColor); // < 1 month
-        if (crackTimeMs < 3_153_600_000_000) return ("Strong", Theme.StrengthStrongColor); // < 100 years
+        if (crackTimeMs < 86_400_000) return ("Weak", Theme.StrengthWeakColor); // < 1 day
+        if (crackTimeMs < 31_536_000_000) return ("Moderate", Theme.StrengthModerateColor); // < 1 year
+        if (crackTimeMs < 315_360_000_000_000) return ("Strong", Theme.StrengthStrongColor); // < 10,000 years
         return ("Ultra Secure", Theme.StrengthUltraColor);
     }
 
