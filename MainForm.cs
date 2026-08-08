@@ -580,6 +580,7 @@ public partial class MainForm : Form
         _strengthMeter.EntropyBits = PasswordGenerator.CalculateEntropyBits(pass);
         
         var crackTimeMs = PasswordGenerator.CalculateCrackTimeMilliseconds(pass, hashRate, isQuantum);
+        _strengthMeter.CrackTimeMs = crackTimeMs;
         _strengthMeter.CrackTimeText = PasswordGenerator.FormatCrackTime(crackTimeMs);
     }
 

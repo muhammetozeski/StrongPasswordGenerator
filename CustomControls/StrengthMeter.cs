@@ -15,6 +15,7 @@ public class StrengthMeter : Control
     private double _entropyBits;
     private string _crackTimeText = string.Empty;
     private bool _quantumThreatActive;
+    private UInt128 _crackTimeMs;
 
     #endregion
 
@@ -65,6 +66,22 @@ public class StrengthMeter : Control
         }
     }
 
+    /// <summary>
+    /// Gets or sets the estimated crack time in milliseconds to determine visual strength.
+    /// </summary>
+    [Category("Data")]
+    [Browsable(false)]
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+    public UInt128 CrackTimeMs
+    {
+        get => _crackTimeMs;
+        set
+        {
+            _crackTimeMs = value;
+            Invalidate();
+        }
+    }
+
     #endregion
 
     #region Constructor
@@ -94,7 +111,7 @@ public class StrengthMeter : Control
         g.SmoothingMode = SmoothingMode.AntiAlias;
         g.Clear(Parent?.BackColor ?? Theme.CardBackgroundColor);
 
-        var (tierName, tierColor) = GetStrengthRating(_entropyBits);
+        var (tierName, tierColor) = GetStrengthRating(_crackTimeMs);
 
         // Status text
         var entropyDisplay = _quantumThreatActive ? $"{_entropyBits:F1} (Quantum: {_entropyBits/2.0:F1})" : $"{_entropyBits:F1}";
@@ -117,8 +134,15 @@ public class StrengthMeter : Control
         using var trackBrush = new SolidBrush(Theme.CardBorderColor);
         g.FillPath(trackBrush, trackPath);
 
-        // Filled strength bar
-        var percentage = Math.Clamp(_entropyBits / 128.0, 0.04, 1.0);
+        // Filled strength bar (Logarithmic scale based on time, 100 years = 100%)
+        // 100 years = 3,153,600,000,000 ms. Log10(3.15 * 10^12) ~ 12.5
+        double percentage = 1.0;
+        if (_crackTimeMs < 3_153_600_000_000)
+        {
+            double msDouble = Math.Max(1.0, (double)_crackTimeMs);
+            percentage = Math.Clamp(Math.Log10(msDouble) / 12.5, 0.04, 1.0);
+        }
+
         var fillWidth = (int)(Width * percentage);
         if (fillWidth > 4)
         {
@@ -134,15 +158,15 @@ public class StrengthMeter : Control
     #region Helper Methods
 
     /// <summary>
-    /// Determines strength category name and color based on bit count.
+    /// Determines strength category name and color based on crack time in milliseconds.
     /// </summary>
-    private static (string TierName, Color TierColor) GetStrengthRating(double bits) => bits switch
+    private static (string TierName, Color TierColor) GetStrengthRating(UInt128 crackTimeMs)
     {
-        < 36.0 => ("Weak", Theme.StrengthWeakColor),
-        < 60.0 => ("Moderate", Theme.StrengthModerateColor),
-        < 96.0 => ("Strong", Theme.StrengthStrongColor),
-        _ => ("Ultra Secure", Theme.StrengthUltraColor)
-    };
+        if (crackTimeMs < 3_600_000) return ("Weak", Theme.StrengthWeakColor); // < 1 hour
+        if (crackTimeMs < 2_592_000_000) return ("Moderate", Theme.StrengthModerateColor); // < 1 month
+        if (crackTimeMs < 3_153_600_000_000) return ("Strong", Theme.StrengthStrongColor); // < 100 years
+        return ("Ultra Secure", Theme.StrengthUltraColor);
+    }
 
     /// <summary>
     /// Creates a rounded rectangle path.
