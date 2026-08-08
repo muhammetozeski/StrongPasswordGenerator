@@ -127,13 +127,12 @@ public static class PasswordGenerator
     }
 
     /// <summary>
-    /// Estimates the time required to crack the password using 1 PetaHash/s hardware.
+    /// Calculates the entropy bits for an arbitrary string based on its content.
     /// </summary>
-    public static UInt128 CalculateCrackTimeMilliseconds(string password)
+    public static double CalculateEntropyBits(string password)
     {
         if (string.IsNullOrEmpty(password)) return 0;
 
-        // 1. Karakter Havuzu Uzayını Belirleme (N)
         int poolSize = 0;
         if (password.Any(char.IsLower)) poolSize += 26;
         if (password.Any(char.IsUpper)) poolSize += 26;
@@ -142,7 +141,6 @@ public static class PasswordGenerator
         
         if (poolSize == 0) return 0;
 
-        // QWERTY klavye dizilimindeki fiziksel tuş yakınlığını kontrol eden YEREL FONKSİYON
         bool IsSpatialAdjacent(char a, char b)
         {
             string[] keyboardRows = { "qwertyuiop", "asdfghjkl", "zxcvbnm", "1234567890" };
@@ -153,14 +151,11 @@ public static class PasswordGenerator
             {
                 int indexA = row.IndexOf(lowerA);
                 int indexB = row.IndexOf(lowerB);
-                
-                if (indexA != -1 && indexB != -1 && Math.Abs(indexA - indexB) == 1)
-                    return true;
+                if (indexA != -1 && indexB != -1 && Math.Abs(indexA - indexB) == 1) return true;
             }
             return false;
         }
 
-        // 2. Koşullu Entropi Hesabı (İlk karakter tam entropiye sahiptir)
         double totalEntropyBits = Math.Log2(poolSize);
 
         for (int i = 1; i < password.Length; i++)
@@ -174,6 +169,18 @@ public static class PasswordGenerator
             else if (IsSpatialAdjacent(current, previous)) totalEntropyBits += Math.Log2(8); // Klavyede yan yana
             else totalEntropyBits += Math.Log2(poolSize); // Bağımsız
         }
+
+        return totalEntropyBits;
+    }
+
+    /// <summary>
+    /// Estimates the time required to crack the password using 1 PetaHash/s hardware.
+    /// </summary>
+    public static UInt128 CalculateCrackTimeMilliseconds(string password)
+    {
+        if (string.IsNullOrEmpty(password)) return 0;
+
+        double totalEntropyBits = CalculateEntropyBits(password);
 
         // 3. Zaman Hesabı (Ortalama kırma ihtimali uzayın yarısıdır)
         double effectiveBits = Math.Max(0, totalEntropyBits - 1);

@@ -15,6 +15,7 @@ A high-performance, modern Windows desktop application for generating cryptograp
 - **Deep Customization:** Fine-grained control over character sets including ambiguous character exclusion (`O`, `0`, `l`, `1`).
 - **Dynamic Entropy Math:** Real-time calculation of password pool size and total Shannon entropy (Bits).
 - **Crack Time Estimation:** Dynamically calculates how long a 1 PetaHash/s supercomputer would take to crack the password.
+- **Custom Password Analysis (Two-Way Sync):** Type your own password and watch length, complexity toggles, and crack time adapt instantly.
 - **Responsive UI:** Fully responsive design that cleanly scales with window resizing.
 - **Zero-Dependency Portable Native Binary:** Deploys as a single standalone executable (AOT ready).
 - **Instant Live Regeneration**: Any adjustment to options, length sliders, or bit inputs dynamically generates a new password immediately.

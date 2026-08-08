@@ -153,10 +153,11 @@ public partial class MainForm : Form
             BackColor = Theme.CardElevatedColor,
             ForeColor = Theme.AccentHoverColor,
             BorderStyle = BorderStyle.FixedSingle,
-            ReadOnly = true,
+            ReadOnly = false,
             Dock = DockStyle.Fill,
             Margin = new Padding(0, 0, 0, 16)
         };
+        _txtPassword.TextChanged += OnPasswordTextChanged;
         table.Controls.Add(_txtPassword, 0, 0);
         table.SetColumnSpan(_txtPassword, 2);
 
@@ -342,6 +343,64 @@ public partial class MainForm : Form
     {
         if (_isUpdatingControls) return;
         UpdateMetricsAndGenerate();
+    }
+
+    /// <summary>
+    /// Handles manual password typing by the user to sync UI controls.
+    /// </summary>
+    private void OnPasswordTextChanged(object? sender, EventArgs e)
+    {
+        if (_isUpdatingControls) return;
+        
+        string pass = _txtPassword.Text;
+        if (string.IsNullOrEmpty(pass))
+        {
+            _strengthMeter.EntropyBits = 0;
+            _strengthMeter.CrackTimeText = "";
+            return;
+        }
+
+        _isUpdatingControls = true;
+
+        // Sync Length
+        int newLength = pass.Length;
+        _numLength.Value = Math.Clamp(newLength, _numLength.Minimum, _numLength.Maximum);
+        _trackLength.Value = Math.Clamp(newLength, _trackLength.Minimum, _trackLength.Maximum);
+
+        // Sync Toggles based on typed characters
+        _toggleUppercase.Checked = pass.Any(char.IsUpper);
+        _toggleLowercase.Checked = pass.Any(char.IsLower);
+        _toggleDigits.Checked = pass.Any(char.IsDigit);
+        
+        // Symbols check (basic heuristic)
+        string specials = "!@#$%^&*()_+-=[]{}|;':\",./<>?";
+        string extended = "~`\\";
+        string ambiguous = "O0l1";
+        
+        _toggleSpecialSymbols.Checked = pass.Any(c => specials.Contains(c));
+        _toggleExtendedSymbols.Checked = pass.Any(c => extended.Contains(c));
+        
+        // If they typed an ambiguous char, we check it? Actually, if they type one, maybe turn on the "Exclude" toggle?
+        // Wait, the toggle is "EXCLUDE Ambiguous". If they type an ambiguous char, it means they DID NOT exclude it.
+        if (pass.Any(c => ambiguous.Contains(c)))
+            _toggleExcludeAmbiguous.Checked = false;
+
+        _toggleIncludeSpaces.Checked = pass.Contains(' ');
+
+        // Sync Bits and Strength Meter
+        var options = ReadCurrentOptions();
+        var poolSize = PasswordGenerator.CalculatePoolSize(options);
+        var bits = PasswordGenerator.CalculateEntropyBits(newLength, poolSize);
+        _numBits.Value = (decimal)Math.Clamp(bits, (double)_numBits.Minimum, (double)_numBits.Maximum);
+
+        // We use the actual typed password's entropy for the strength meter, not the theoretical max
+        double actualEntropy = PasswordGenerator.CalculateEntropyBits(pass);
+        _strengthMeter.EntropyBits = actualEntropy;
+        
+        var crackTimeMs = PasswordGenerator.CalculateCrackTimeMilliseconds(pass);
+        _strengthMeter.CrackTimeText = PasswordGenerator.FormatCrackTime(crackTimeMs);
+
+        _isUpdatingControls = false;
     }
 
     /// <summary>
