@@ -1,0 +1,2 @@
+C:\E\KodlamaProjeleri\CSharp\StrongPasswordGenerator\publish\Portable\StrongPasswordGenerator.pdb
+C:\E\KodlamaProjeleri\CSharp\StrongPasswordGenerator\publish\Portable\StrongPasswordGenerator.exe

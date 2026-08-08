@@ -1,0 +1,2 @@
+C:\E\KodlamaProjeleri\CSharp\StrongPasswordGenerator\publish\FrameworkDependent\StrongPasswordGenerator.pdb
+C:\E\KodlamaProjeleri\CSharp\StrongPasswordGenerator\publish\FrameworkDependent\StrongPasswordGenerator.exe
