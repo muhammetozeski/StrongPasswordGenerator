@@ -14,7 +14,8 @@ A high-performance, modern Windows desktop application for generating cryptograp
 - **Hardware-Grade Entropy:** Utilizes `System.Security.Cryptography.RandomNumberGenerator` for true cryptographic randomness.
 - **Deep Customization:** Fine-grained control over character sets including ambiguous character exclusion (`O`, `0`, `l`, `1`).
 - **Dynamic Entropy Math:** Real-time calculation of password pool size and total Shannon entropy (Bits).
-- **Crack Time Estimation:** Dynamically calculates how long a 1 PetaHash/s supercomputer would take to crack the password.
+- **Attacker Threat Model:** A 7-level logarithmic slider to simulate realistic hardware attacks, from 100 Hash/s (Web Attacks) up to 1 PetaHash/s (State-Sponsored Supercomputers).
+- **Quantum Threat Simulator:** Toggle Grover's Algorithm to see how Quantum Computing halves the effective entropy of your password.
 - **Custom Password Analysis (Two-Way Sync):** Type your own password and watch length, complexity toggles, and crack time adapt instantly.
 - **Responsive UI:** Fully responsive design that cleanly scales with window resizing.
 - **Zero-Dependency Portable Native Binary:** Deploys as a single standalone executable (AOT ready).

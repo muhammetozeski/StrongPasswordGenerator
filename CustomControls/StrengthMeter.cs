@@ -14,6 +14,7 @@ public class StrengthMeter : Control
 
     private double _entropyBits;
     private string _crackTimeText = string.Empty;
+    private bool _quantumThreatActive;
 
     #endregion
 
@@ -30,6 +31,21 @@ public class StrengthMeter : Control
         set
         {
             _entropyBits = value;
+            Invalidate();
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets whether the password is vulnerable to quantum threats.
+    /// </summary>
+    [Category("Data")]
+    [DefaultValue(false)]
+    public bool QuantumThreatActive
+    {
+        get => _quantumThreatActive;
+        set
+        {
+            _quantumThreatActive = value;
             Invalidate();
         }
     }
@@ -81,7 +97,8 @@ public class StrengthMeter : Control
         var (tierName, tierColor) = GetStrengthRating(_entropyBits);
 
         // Status text
-        var statusText = $"{_entropyBits:F1} bits  •  {tierName}";
+        var entropyDisplay = _quantumThreatActive ? $"{_entropyBits:F1} (Quantum: {_entropyBits/2.0:F1})" : $"{_entropyBits:F1}";
+        var statusText = $"{entropyDisplay} bits  •  {tierName}";
         var textRect = new Rectangle(0, 0, Width, 18);
         TextRenderer.DrawText(g, statusText, Font, textRect, tierColor, TextFormatFlags.Left | TextFormatFlags.Top);
 

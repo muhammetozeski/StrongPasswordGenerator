@@ -173,14 +173,31 @@ public static class PasswordGenerator
         return totalEntropyBits;
     }
 
+    public record ThreatProfile(string Title, BigInteger HashesPerSecond, string Description);
+
+    public static readonly ThreatProfile[] ThreatProfiles = new ThreatProfile[]
+    {
+        new ThreatProfile("Online Web Attack (100 H/s)", 100, "Zayıf bir sunucuya veya hız sınırlandırması olan online bir sisteme yönelik yavaş web saldırısı. (Forum şifreleri vb.)"),
+        new ThreatProfile("Office PC CPU (10 kH/s)", 10_000, "Sıradan bir ofis bilgisayarının sadece işlemcisi (CPU) kullanılarak yapılan temel amatör denemeler."),
+        new ThreatProfile("Standard GPU (10 MH/s)", 10_000_000, "Giriş seviyesi bir ekran kartı. Sosyal medya hesaplarını kırmayı amaçlayan hedefli bir saldırgan."),
+        new ThreatProfile("High-End GPU (1 GH/s)", 1_000_000_000, "Son teknoloji tek bir oyuncu ekran kartı (örn. RTX 4090). Profesyonel kişisel bir hacker."),
+        new ThreatProfile("Hacker Group (100 GH/s)", 100_000_000_000, "8-10 adet güçlü ekran kartından oluşan küçük çaplı bir madenci (mining) teçhizatı. Organize bir grup."),
+        new ThreatProfile("Medium Botnet (10 TH/s)", 10_000_000_000_000, "Ele geçirilmiş binlerce zombi bilgisayardan oluşan devasa botnet ağları. Şirket sunucularına yönelik saldırı."),
+        new ThreatProfile("State-Sponsored (1 PH/s)", 1_000_000_000_000_000, "Dünyanın en gelişmiş veri merkezleri ve süper bilgisayarları. Ulusal savunmayı hedefleyen devlet destekli güç.")
+    };
+
     /// <summary>
-    /// Estimates the time required to crack the password using 1 PetaHash/s hardware.
+    /// Estimates the time required to crack the password based on a specific threat profile and quantum vulnerability.
     /// </summary>
-    public static UInt128 CalculateCrackTimeMilliseconds(string password)
+    public static UInt128 CalculateCrackTimeMilliseconds(string password, BigInteger hashesPerSecond, bool quantumThreat)
     {
         if (string.IsNullOrEmpty(password)) return 0;
 
         double totalEntropyBits = CalculateEntropyBits(password);
+        if (quantumThreat)
+        {
+            totalEntropyBits = totalEntropyBits / 2.0;
+        }
 
         // 3. Zaman Hesabı (Ortalama kırma ihtimali uzayın yarısıdır)
         double effectiveBits = Math.Max(0, totalEntropyBits - 1);
@@ -188,10 +205,13 @@ public static class PasswordGenerator
         // Güvenli üs alma işlemi (2^effectiveBits)
         BigInteger totalGuesses = BigInteger.One << (int)Math.Floor(effectiveBits);
 
-        // Donanım Modeli: Saniyede 1 PetaHash = Milisaniyede 10^12 Hash
-        BigInteger hashesPerMillisecond = 1_000_000_000_000; 
-
-        BigInteger timeInMs = totalGuesses / hashesPerMillisecond;
+        // Convert hashes/sec to hashes/ms. If H/s < 1000, we just do calculations in seconds first.
+        // Actually, to avoid zero division if hashesPerSecond < 1000:
+        // timeInSeconds = totalGuesses / hashesPerSecond
+        // timeInMs = timeInSeconds * 1000
+        
+        BigInteger timeInSeconds = totalGuesses / hashesPerSecond;
+        BigInteger timeInMs = timeInSeconds * 1000;
 
         // Süre, evrenin yaşının kentilyonlarca katı olan UInt128 sınırını aşıyorsa
         // fiziksel olarak sonsuzluk kabul edilir ve direkt maksimum değer dönülür.

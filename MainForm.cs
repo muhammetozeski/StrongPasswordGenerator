@@ -31,6 +31,10 @@ public partial class MainForm : Form
     private ToggleSwitch _toggleExcludeAmbiguous = null!;
     private ToggleSwitch _toggleIncludeSpaces = null!;
 
+    private TrackBar _trackThreatLevel = null!;
+    private Label _lblThreatDesc = null!;
+    private ToggleSwitch _toggleQuantum = null!;
+
     #endregion
 
     #region Constructor
@@ -92,8 +96,11 @@ public partial class MainForm : Form
         var controlsCard = CreateLengthAndEntropyCard();
         mainContainer.Controls.Add(controlsCard, 0, 2);
 
+        var threatCard = CreateThreatModelCard();
+        mainContainer.Controls.Add(threatCard, 0, 3);
+
         var togglesCard = CreateTogglesCard();
-        mainContainer.Controls.Add(togglesCard, 0, 3);
+        mainContainer.Controls.Add(togglesCard, 0, 4);
     }
 
     private static Panel CreateHeaderPanel()
@@ -260,6 +267,71 @@ public partial class MainForm : Form
         return card;
     }
 
+    private Panel CreateThreatModelCard()
+    {
+        var card = CreateCardPanel();
+
+        var table = new TableLayoutPanel
+        {
+            Dock = DockStyle.Fill,
+            AutoSize = true,
+            ColumnCount = 2,
+            RowCount = 3
+        };
+        table.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+        table.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+
+        var lblSection = new Label
+        {
+            Text = "ATTACKER THREAT MODEL",
+            Font = Theme.SectionFont,
+            ForeColor = Theme.TextSecondaryColor,
+            AutoSize = true,
+            Margin = new Padding(0, 0, 0, 16)
+        };
+        table.Controls.Add(lblSection, 0, 0);
+        table.SetColumnSpan(lblSection, 2);
+
+        _trackThreatLevel = new TrackBar
+        {
+            Minimum = 0,
+            Maximum = 6,
+            Value = 3, // Default to High-End GPU
+            TickStyle = TickStyle.BottomRight,
+            Dock = DockStyle.Fill,
+            Margin = new Padding(0, 0, 0, 16)
+        };
+        _trackThreatLevel.ValueChanged += OnThreatLevelChanged;
+
+        _toggleQuantum = new ToggleSwitch
+        {
+            LabelText = "Quantum Threat",
+            Checked = false,
+            Dock = DockStyle.Fill,
+            Margin = new Padding(16, 0, 0, 16),
+            MinimumSize = new Size(180, 28)
+        };
+        _toggleQuantum.CheckedChanged += OnThreatLevelChanged;
+
+        _lblThreatDesc = new Label
+        {
+            Font = Theme.BodyFont,
+            ForeColor = Theme.TextPrimaryColor,
+            AutoSize = true,
+            Margin = new Padding(0, 0, 0, 16)
+        };
+
+        table.Controls.Add(_trackThreatLevel, 0, 1);
+        table.Controls.Add(_toggleQuantum, 1, 1);
+        table.Controls.Add(_lblThreatDesc, 0, 2);
+        table.SetColumnSpan(_lblThreatDesc, 2);
+
+        card.Controls.Add(table);
+        
+        UpdateThreatDescription();
+        return card;
+    }
+
     private Panel CreateTogglesCard()
     {
         var card = CreateCardPanel();
@@ -394,11 +466,7 @@ public partial class MainForm : Form
         _numBits.Value = (decimal)Math.Clamp(bits, (double)_numBits.Minimum, (double)_numBits.Maximum);
 
         // We use the actual typed password's entropy for the strength meter, not the theoretical max
-        double actualEntropy = PasswordGenerator.CalculateEntropyBits(pass);
-        _strengthMeter.EntropyBits = actualEntropy;
-        
-        var crackTimeMs = PasswordGenerator.CalculateCrackTimeMilliseconds(pass);
-        _strengthMeter.CrackTimeText = PasswordGenerator.FormatCrackTime(crackTimeMs);
+        UpdateCrackTimeDisplay();
 
         _isUpdatingControls = false;
     }
@@ -481,7 +549,36 @@ public partial class MainForm : Form
         var password = PasswordGenerator.Generate(options);
         _txtPassword.Text = password;
         
-        var crackTimeMs = PasswordGenerator.CalculateCrackTimeMilliseconds(password);
+        UpdateCrackTimeDisplay();
+    }
+
+    private void OnThreatLevelChanged(object? sender, EventArgs e)
+    {
+        if (_isUpdatingControls) return;
+        UpdateThreatDescription();
+        UpdateCrackTimeDisplay();
+    }
+
+    private void UpdateThreatDescription()
+    {
+        int index = _trackThreatLevel.Value;
+        var profile = PasswordGenerator.ThreatProfiles[index];
+        _lblThreatDesc.Text = $"{profile.Title}\n{profile.Description}";
+    }
+
+    private void UpdateCrackTimeDisplay()
+    {
+        string pass = _txtPassword.Text;
+        if (string.IsNullOrEmpty(pass)) return;
+        
+        int index = _trackThreatLevel.Value;
+        var profile = PasswordGenerator.ThreatProfiles[index];
+        bool isQuantum = _toggleQuantum.Checked;
+        
+        _strengthMeter.QuantumThreatActive = isQuantum;
+        _strengthMeter.EntropyBits = PasswordGenerator.CalculateEntropyBits(pass);
+        
+        var crackTimeMs = PasswordGenerator.CalculateCrackTimeMilliseconds(pass, profile.HashesPerSecond, isQuantum);
         _strengthMeter.CrackTimeText = PasswordGenerator.FormatCrackTime(crackTimeMs);
     }
 
