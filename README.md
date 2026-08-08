@@ -9,10 +9,14 @@ A high-performance, modern Windows desktop application for generating cryptograp
 
 ---
 
-## Key Features
+## 🌟 Core Features
 
-- **Hardware-Grade Cryptographic RNG**: Powered by `System.Security.Cryptography.RandomNumberGenerator` to eliminate predictable pseudo-random seeds.
-- **Bi-Directional Entropy & Length Control**: Synchronizes character length and entropy bits ($E = L \times \log_2(N)$) in real-time.
+- **Hardware-Grade Entropy:** Utilizes `System.Security.Cryptography.RandomNumberGenerator` for true cryptographic randomness.
+- **Deep Customization:** Fine-grained control over character sets including ambiguous character exclusion (`O`, `0`, `l`, `1`).
+- **Dynamic Entropy Math:** Real-time calculation of password pool size and total Shannon entropy (Bits).
+- **Crack Time Estimation:** Dynamically calculates how long a 1 PetaHash/s supercomputer would take to crack the password.
+- **Responsive UI:** Fully responsive design that cleanly scales with window resizing.
+- **Zero-Dependency Portable Native Binary:** Deploys as a single standalone executable (AOT ready).
 - **Instant Live Regeneration**: Any adjustment to options, length sliders, or bit inputs dynamically generates a new password immediately.
 - **Guaranteed Character Set Inclusion**: Ensures at least one character from every active set is present in the output before shuffling.
 - **Fisher-Yates Cryptographic Shuffle**: Prevents positional bias in generated passwords.

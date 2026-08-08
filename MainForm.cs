@@ -65,49 +65,48 @@ public partial class MainForm : Form
         DoubleBuffered = true;
     }
 
-    /// <summary>
-    /// Constructs the entire card-based modern UI hierarchy programmatically.
-    /// </summary>
     private void BuildCustomUiLayout()
     {
-        var mainContainer = new FlowLayoutPanel
+        var mainContainer = new TableLayoutPanel
         {
             Dock = DockStyle.Fill,
-            AutoScroll = true,
-            FlowDirection = FlowDirection.TopDown,
-            WrapContents = false,
+            ColumnCount = 1,
+            RowCount = 4,
             Padding = new Padding(24),
-            BackColor = Theme.BackgroundColor
+            BackColor = Theme.BackgroundColor,
+            AutoScroll = true
         };
+        mainContainer.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+        mainContainer.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        mainContainer.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        mainContainer.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        mainContainer.RowStyles.Add(new RowStyle(SizeType.AutoSize));
         Controls.Add(mainContainer);
 
-        // Header Panel
         var headerPanel = CreateHeaderPanel();
-        mainContainer.Controls.Add(headerPanel);
+        mainContainer.Controls.Add(headerPanel, 0, 0);
 
-        // Password Display Card
         var passwordCard = CreatePasswordCard();
-        mainContainer.Controls.Add(passwordCard);
+        mainContainer.Controls.Add(passwordCard, 0, 1);
 
-        // Length & Entropy Controls Card
         var controlsCard = CreateLengthAndEntropyCard();
-        mainContainer.Controls.Add(controlsCard);
+        mainContainer.Controls.Add(controlsCard, 0, 2);
 
-        // Character Options Toggles Card
         var togglesCard = CreateTogglesCard();
-        mainContainer.Controls.Add(togglesCard);
+        mainContainer.Controls.Add(togglesCard, 0, 3);
     }
 
-    /// <summary>
-    /// Creates the header panel containing title and security subtitle.
-    /// </summary>
     private static Panel CreateHeaderPanel()
     {
-        var panel = new Panel
+        var panel = new TableLayoutPanel
         {
-            Size = new Size(610, 50),
+            Dock = DockStyle.Fill,
+            AutoSize = true,
+            ColumnCount = 1,
+            RowCount = 2,
             Margin = new Padding(0, 0, 0, 16)
         };
+        panel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
 
         var lblTitle = new Label
         {
@@ -115,7 +114,7 @@ public partial class MainForm : Form
             Font = Theme.HeaderFont,
             ForeColor = Theme.TextPrimaryColor,
             AutoSize = true,
-            Location = new Point(0, 0)
+            Anchor = AnchorStyles.Left | AnchorStyles.Top
         };
 
         var lblSubtitle = new Label
@@ -124,20 +123,29 @@ public partial class MainForm : Form
             Font = Theme.BodyFont,
             ForeColor = Theme.TextSecondaryColor,
             AutoSize = true,
-            Location = new Point(2, 28)
+            Anchor = AnchorStyles.Left | AnchorStyles.Top
         };
 
-        panel.Controls.Add(lblTitle);
-        panel.Controls.Add(lblSubtitle);
+        panel.Controls.Add(lblTitle, 0, 0);
+        panel.Controls.Add(lblSubtitle, 0, 1);
         return panel;
     }
 
-    /// <summary>
-    /// Creates the top password display card with copy and regenerate buttons.
-    /// </summary>
     private Panel CreatePasswordCard()
     {
-        var card = CreateCardPanel(610, 110);
+        var card = CreateCardPanel();
+
+        var table = new TableLayoutPanel
+        {
+            Dock = DockStyle.Fill,
+            AutoSize = true,
+            ColumnCount = 2,
+            RowCount = 2
+        };
+        table.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
+        table.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
+        table.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        table.RowStyles.Add(new RowStyle(SizeType.AutoSize));
 
         _txtPassword = new TextBox
         {
@@ -146,9 +154,11 @@ public partial class MainForm : Form
             ForeColor = Theme.AccentHoverColor,
             BorderStyle = BorderStyle.FixedSingle,
             ReadOnly = true,
-            Location = new Point(16, 16),
-            Size = new Size(578, 36)
+            Dock = DockStyle.Fill,
+            Margin = new Padding(0, 0, 0, 16)
         };
+        table.Controls.Add(_txtPassword, 0, 0);
+        table.SetColumnSpan(_txtPassword, 2);
 
         _btnRegenerate = new Button
         {
@@ -157,7 +167,7 @@ public partial class MainForm : Form
             BackColor = Theme.AccentColor,
             ForeColor = Color.White,
             FlatStyle = FlatStyle.Flat,
-            Location = new Point(16, 60),
+            Anchor = AnchorStyles.Left | AnchorStyles.Top,
             Size = new Size(130, 34),
             Cursor = Cursors.Hand
         };
@@ -171,176 +181,151 @@ public partial class MainForm : Form
             BackColor = Theme.CardElevatedColor,
             ForeColor = Theme.TextPrimaryColor,
             FlatStyle = FlatStyle.Flat,
-            Location = new Point(156, 60),
+            Anchor = AnchorStyles.Left | AnchorStyles.Top,
             Size = new Size(140, 34),
             Cursor = Cursors.Hand
         };
         _btnCopy.FlatAppearance.BorderColor = Theme.CardBorderColor;
         _btnCopy.Click += OnCopyButtonClick;
 
-        card.Controls.Add(_txtPassword);
-        card.Controls.Add(_btnRegenerate);
-        card.Controls.Add(_btnCopy);
+        var buttonPanel = new FlowLayoutPanel
+        {
+            Dock = DockStyle.Fill,
+            AutoSize = true,
+            WrapContents = false
+        };
+        buttonPanel.Controls.Add(_btnRegenerate);
+        buttonPanel.Controls.Add(_btnCopy);
 
+        table.Controls.Add(buttonPanel, 0, 1);
+        table.SetColumnSpan(buttonPanel, 2);
+
+        card.Controls.Add(table);
         return card;
     }
 
-    /// <summary>
-    /// Creates the middle card containing password length, bit entropy inputs, and strength meter.
-    /// </summary>
     private Panel CreateLengthAndEntropyCard()
     {
-        var card = CreateCardPanel(610, 165);
+        var card = CreateCardPanel();
+
+        var table = new TableLayoutPanel
+        {
+            Dock = DockStyle.Fill,
+            AutoSize = true,
+            ColumnCount = 3,
+            RowCount = 3
+        };
+        table.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+        table.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F));
+        table.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
 
         var lblSection = new Label
         {
             Text = "LENGTH & ENTROPY BITS",
             Font = Theme.SectionFont,
             ForeColor = Theme.TextSecondaryColor,
-            Location = new Point(16, 12),
-            AutoSize = true
+            AutoSize = true,
+            Margin = new Padding(0, 0, 0, 16)
         };
+        table.Controls.Add(lblSection, 0, 0);
+        table.SetColumnSpan(lblSection, 3);
 
-        // Password Length controls
-        var lblLength = new Label
-        {
-            Text = "Character Length:",
-            Font = Theme.BodyFont,
-            ForeColor = Theme.TextPrimaryColor,
-            Location = new Point(16, 42),
-            AutoSize = true
-        };
-
-        _numLength = new NumericUpDown
-        {
-            Minimum = 4,
-            Maximum = 128,
-            Value = 16,
-            Font = Theme.BodyFont,
-            BackColor = Theme.CardElevatedColor,
-            ForeColor = Theme.TextPrimaryColor,
-            Location = new Point(140, 38),
-            Size = new Size(64, 26)
-        };
+        var lengthPanel = new FlowLayoutPanel { AutoSize = true, WrapContents = false, Dock = DockStyle.Fill, Margin = new Padding(0, 0, 16, 0) };
+        var lblLength = new Label { Text = "Character Length:", Font = Theme.BodyFont, ForeColor = Theme.TextPrimaryColor, AutoSize = true, Anchor = AnchorStyles.Left };
+        _numLength = new NumericUpDown { Minimum = 4, Maximum = 128, Value = 16, Font = Theme.BodyFont, BackColor = Theme.CardElevatedColor, ForeColor = Theme.TextPrimaryColor, Size = new Size(64, 26) };
         _numLength.ValueChanged += OnLengthNumericChanged;
-
-        _trackLength = new TrackBar
-        {
-            Minimum = 4,
-            Maximum = 128,
-            Value = 16,
-            Location = new Point(210, 36),
-            Size = new Size(180, 45),
-            TickStyle = TickStyle.None,
-            AutoSize = false
-        };
+        lengthPanel.Controls.Add(lblLength);
+        lengthPanel.Controls.Add(_numLength);
+        
+        _trackLength = new TrackBar { Minimum = 4, Maximum = 128, Value = 16, TickStyle = TickStyle.None, Dock = DockStyle.Fill };
         _trackLength.ValueChanged += OnLengthTrackBarChanged;
 
-        // Bit Count controls
-        var lblBits = new Label
-        {
-            Text = "Entropy Bits:",
-            Font = Theme.BodyFont,
-            ForeColor = Theme.TextPrimaryColor,
-            Location = new Point(410, 42),
-            AutoSize = true
-        };
-
-        _numBits = new NumericUpDown
-        {
-            Minimum = 10,
-            Maximum = 512,
-            Value = 96,
-            Font = Theme.BodyFont,
-            BackColor = Theme.CardElevatedColor,
-            ForeColor = Theme.TextPrimaryColor,
-            Location = new Point(500, 38),
-            Size = new Size(94, 26)
-        };
+        var bitsPanel = new FlowLayoutPanel { AutoSize = true, WrapContents = false, Dock = DockStyle.Fill, FlowDirection = FlowDirection.RightToLeft, Margin = new Padding(16, 0, 0, 0) };
+        _numBits = new NumericUpDown { Minimum = 10, Maximum = 512, Value = 96, Font = Theme.BodyFont, BackColor = Theme.CardElevatedColor, ForeColor = Theme.TextPrimaryColor, Size = new Size(94, 26) };
         _numBits.ValueChanged += OnBitsNumericChanged;
+        var lblBits = new Label { Text = "Entropy Bits:", Font = Theme.BodyFont, ForeColor = Theme.TextPrimaryColor, AutoSize = true, Anchor = AnchorStyles.Right };
+        bitsPanel.Controls.Add(_numBits);
+        bitsPanel.Controls.Add(lblBits);
 
-        // Strength Meter
-        _strengthMeter = new StrengthMeter
-        {
-            Location = new Point(16, 92),
-            Size = new Size(578, 48)
-        };
+        table.Controls.Add(lengthPanel, 0, 1);
+        table.Controls.Add(_trackLength, 1, 1);
+        table.Controls.Add(bitsPanel, 2, 1);
 
-        card.Controls.Add(lblSection);
-        card.Controls.Add(lblLength);
-        card.Controls.Add(_numLength);
-        card.Controls.Add(_trackLength);
-        card.Controls.Add(lblBits);
-        card.Controls.Add(_numBits);
-        card.Controls.Add(_strengthMeter);
+        _strengthMeter = new StrengthMeter { Dock = DockStyle.Fill, Margin = new Padding(0, 16, 0, 0) };
+        table.Controls.Add(_strengthMeter, 0, 2);
+        table.SetColumnSpan(_strengthMeter, 3);
 
+        card.Controls.Add(table);
         return card;
     }
 
-    /// <summary>
-    /// Creates the bottom card containing character set inclusion toggles.
-    /// </summary>
     private Panel CreateTogglesCard()
     {
-        var card = CreateCardPanel(610, 220);
+        var card = CreateCardPanel();
+
+        var table = new TableLayoutPanel
+        {
+            Dock = DockStyle.Fill,
+            AutoSize = true,
+            ColumnCount = 2,
+            RowCount = 5
+        };
+        table.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
+        table.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50F));
 
         var lblSection = new Label
         {
             Text = "CHARACTER SET OPTIONS",
             Font = Theme.SectionFont,
             ForeColor = Theme.TextSecondaryColor,
-            Location = new Point(16, 12),
-            AutoSize = true
+            AutoSize = true,
+            Margin = new Padding(0, 0, 0, 16)
         };
-        card.Controls.Add(lblSection);
+        table.Controls.Add(lblSection, 0, 0);
+        table.SetColumnSpan(lblSection, 2);
 
-        _toggleUppercase = CreateToggle("Uppercase (A-Z)", true, 16, 44);
-        _toggleLowercase = CreateToggle("Lowercase (a-z)", true, 310, 44);
+        _toggleUppercase = CreateToggle("Uppercase (A-Z)", true);
+        _toggleLowercase = CreateToggle("Lowercase (a-z)", true);
+        _toggleDigits = CreateToggle("Digits (0-9)", true);
+        _toggleSpecialSymbols = CreateToggle("Special Symbols (!@#$)", true);
+        _toggleExtendedSymbols = CreateToggle("Extended Symbols (~`/)", false);
+        _toggleExcludeAmbiguous = CreateToggle("Exclude Ambiguous (O,0,l,1)", false);
+        _toggleIncludeSpaces = CreateToggle("Include Spaces (' ')", false);
 
-        _toggleDigits = CreateToggle("Digits (0-9)", true, 16, 80);
-        _toggleSpecialSymbols = CreateToggle("Special Symbols (!@#$)", true, 310, 80);
+        table.Controls.Add(_toggleUppercase, 0, 1);
+        table.Controls.Add(_toggleLowercase, 1, 1);
+        table.Controls.Add(_toggleDigits, 0, 2);
+        table.Controls.Add(_toggleSpecialSymbols, 1, 2);
+        table.Controls.Add(_toggleExtendedSymbols, 0, 3);
+        table.Controls.Add(_toggleExcludeAmbiguous, 1, 3);
+        table.Controls.Add(_toggleIncludeSpaces, 0, 4);
 
-        _toggleExtendedSymbols = CreateToggle("Extended Symbols (~`/)", false, 16, 116);
-        _toggleExcludeAmbiguous = CreateToggle("Exclude Ambiguous (O,0,l,1)", false, 310, 116);
-
-        _toggleIncludeSpaces = CreateToggle("Include Spaces (' ')", false, 16, 152);
-
-        card.Controls.Add(_toggleUppercase);
-        card.Controls.Add(_toggleLowercase);
-        card.Controls.Add(_toggleDigits);
-        card.Controls.Add(_toggleSpecialSymbols);
-        card.Controls.Add(_toggleExtendedSymbols);
-        card.Controls.Add(_toggleExcludeAmbiguous);
-        card.Controls.Add(_toggleIncludeSpaces);
-
+        card.Controls.Add(table);
         return card;
     }
 
-    /// <summary>
-    /// Creates a standard card panel container.
-    /// </summary>
-    private static Panel CreateCardPanel(int width, int height)
+    private static Panel CreateCardPanel()
     {
         return new Panel
         {
-            Size = new Size(width, height),
+            Dock = DockStyle.Fill,
+            AutoSize = true,
+            AutoSizeMode = AutoSizeMode.GrowAndShrink,
             BackColor = Theme.CardBackgroundColor,
             Margin = new Padding(0, 0, 0, 16),
             Padding = new Padding(16)
         };
     }
 
-    /// <summary>
-    /// Creates a toggle switch control and attaches change handler for dynamic password regeneration.
-    /// </summary>
-    private ToggleSwitch CreateToggle(string label, bool initialChecked, int x, int y)
+    private ToggleSwitch CreateToggle(string label, bool initialChecked)
     {
         var toggle = new ToggleSwitch
         {
             LabelText = label,
             Checked = initialChecked,
-            Location = new Point(x, y),
-            Size = new Size(270, 28)
+            Dock = DockStyle.Fill,
+            Margin = new Padding(0, 0, 16, 16),
+            MinimumSize = new Size(200, 28)
         };
         toggle.CheckedChanged += (_, _) => OnOptionToggleChanged();
         return toggle;
@@ -431,14 +416,14 @@ public partial class MainForm : Form
         GeneratePassword();
     }
 
-    /// <summary>
-    /// Generates a new password using PasswordGenerator and updates password textbox.
-    /// </summary>
     private void GeneratePassword()
     {
         var options = ReadCurrentOptions();
         var password = PasswordGenerator.Generate(options);
         _txtPassword.Text = password;
+        
+        var crackTimeMs = PasswordGenerator.CalculateCrackTimeMilliseconds(password);
+        _strengthMeter.CrackTimeText = PasswordGenerator.FormatCrackTime(crackTimeMs);
     }
 
     /// <summary>

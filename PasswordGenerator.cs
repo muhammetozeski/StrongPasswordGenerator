@@ -1,3 +1,5 @@
+using System.Linq;
+using System.Numerics;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -122,6 +124,106 @@ public static class PasswordGenerator
         var bitsPerChar = Math.Log2(poolSize);
         var requiredLength = (int)Math.Ceiling(targetBits / bitsPerChar);
         return Math.Clamp(requiredLength, 4, 128);
+    }
+
+    /// <summary>
+    /// Estimates the time required to crack the password using 1 PetaHash/s hardware.
+    /// </summary>
+    public static UInt128 CalculateCrackTimeMilliseconds(string password)
+    {
+        if (string.IsNullOrEmpty(password)) return 0;
+
+        // 1. Karakter Havuzu Uzayını Belirleme (N)
+        int poolSize = 0;
+        if (password.Any(char.IsLower)) poolSize += 26;
+        if (password.Any(char.IsUpper)) poolSize += 26;
+        if (password.Any(char.IsDigit)) poolSize += 10;
+        if (password.Any(c => !char.IsLetterOrDigit(c))) poolSize += 32;
+        
+        if (poolSize == 0) return 0;
+
+        // QWERTY klavye dizilimindeki fiziksel tuş yakınlığını kontrol eden YEREL FONKSİYON
+        bool IsSpatialAdjacent(char a, char b)
+        {
+            string[] keyboardRows = { "qwertyuiop", "asdfghjkl", "zxcvbnm", "1234567890" };
+            char lowerA = char.ToLowerInvariant(a);
+            char lowerB = char.ToLowerInvariant(b);
+
+            foreach (var row in keyboardRows)
+            {
+                int indexA = row.IndexOf(lowerA);
+                int indexB = row.IndexOf(lowerB);
+                
+                if (indexA != -1 && indexB != -1 && Math.Abs(indexA - indexB) == 1)
+                    return true;
+            }
+            return false;
+        }
+
+        // 2. Koşullu Entropi Hesabı (İlk karakter tam entropiye sahiptir)
+        double totalEntropyBits = Math.Log2(poolSize);
+
+        for (int i = 1; i < password.Length; i++)
+        {
+            char current = password[i];
+            char previous = password[i - 1];
+            int asciiDiff = Math.Abs(current - previous);
+
+            if (asciiDiff == 0) totalEntropyBits += Math.Log2(2); // Tekrar
+            else if (asciiDiff == 1) totalEntropyBits += Math.Log2(4); // Sıralı
+            else if (IsSpatialAdjacent(current, previous)) totalEntropyBits += Math.Log2(8); // Klavyede yan yana
+            else totalEntropyBits += Math.Log2(poolSize); // Bağımsız
+        }
+
+        // 3. Zaman Hesabı (Ortalama kırma ihtimali uzayın yarısıdır)
+        double effectiveBits = Math.Max(0, totalEntropyBits - 1);
+
+        // Güvenli üs alma işlemi (2^effectiveBits)
+        BigInteger totalGuesses = BigInteger.One << (int)Math.Floor(effectiveBits);
+
+        // Donanım Modeli: Saniyede 1 PetaHash = Milisaniyede 10^12 Hash
+        BigInteger hashesPerMillisecond = 1_000_000_000_000; 
+
+        BigInteger timeInMs = totalGuesses / hashesPerMillisecond;
+
+        // Süre, evrenin yaşının kentilyonlarca katı olan UInt128 sınırını aşıyorsa
+        // fiziksel olarak sonsuzluk kabul edilir ve direkt maksimum değer dönülür.
+        if (timeInMs > UInt128.MaxValue)
+        {
+            return UInt128.MaxValue;
+        }
+
+        return (UInt128)timeInMs;
+    }
+
+    /// <summary>
+    /// Formats milliseconds into a human-readable string with dynamic scaling.
+    /// </summary>
+    public static string FormatCrackTime(UInt128 ms)
+    {
+        if (ms == UInt128.MaxValue) return "Infinity";
+        if (ms < 1000) return $"{ms} milliseconds";
+        
+        UInt128 seconds = ms / 1000;
+        if (seconds < 60) return $"{seconds} seconds";
+        
+        UInt128 minutes = seconds / 60;
+        if (minutes < 60) return $"{minutes} minutes";
+        
+        UInt128 hours = minutes / 60;
+        if (hours < 24) return $"{hours} hours";
+        
+        UInt128 days = hours / 24;
+        if (days < 30) return $"{days} days";
+        
+        UInt128 months = days / 30;
+        if (months < 12) return $"{months} months";
+        
+        UInt128 years = days / 365;
+        if (years < 100) return $"{years} years";
+        
+        UInt128 centuries = years / 100;
+        return $"{centuries} centuries";
     }
 
     #endregion

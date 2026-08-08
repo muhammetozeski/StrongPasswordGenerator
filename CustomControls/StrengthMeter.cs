@@ -13,6 +13,7 @@ public class StrengthMeter : Control
     #region Fields
 
     private double _entropyBits;
+    private string _crackTimeText = string.Empty;
 
     #endregion
 
@@ -33,6 +34,21 @@ public class StrengthMeter : Control
         }
     }
 
+    /// <summary>
+    /// Gets or sets the estimated crack time text.
+    /// </summary>
+    [Category("Data")]
+    [DefaultValue("")]
+    public string CrackTimeText
+    {
+        get => _crackTimeText;
+        set
+        {
+            _crackTimeText = value;
+            Invalidate();
+        }
+    }
+
     #endregion
 
     #region Constructor
@@ -44,7 +60,7 @@ public class StrengthMeter : Control
     {
         SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | ControlStyles.OptimizedDoubleBuffer | ControlStyles.SupportsTransparentBackColor | ControlStyles.ResizeRedraw, true);
         DoubleBuffered = true;
-        Size = new Size(300, 36);
+        Size = new Size(300, 50); // Increased height to accommodate new text
         Font = Theme.BodyFont;
     }
 
@@ -67,7 +83,14 @@ public class StrengthMeter : Control
         // Status text
         var statusText = $"{_entropyBits:F1} bits  •  {tierName}";
         var textRect = new Rectangle(0, 0, Width, 18);
-        TextRenderer.DrawText(g, statusText, Font, textRect, tierColor, TextFormatFlags.Left | TextFormatFlags.VerticalCenter);
+        TextRenderer.DrawText(g, statusText, Font, textRect, tierColor, TextFormatFlags.Left | TextFormatFlags.Top);
+
+        // Crack time text
+        if (!string.IsNullOrEmpty(_crackTimeText))
+        {
+            var crackTimeRect = new Rectangle(0, 18, Width, 18);
+            TextRenderer.DrawText(g, $"Est. Crack Time: {_crackTimeText}", Font, crackTimeRect, Theme.TextSecondaryColor, TextFormatFlags.Left | TextFormatFlags.Top);
+        }
 
         // Track bar
         const int barHeight = 8;
