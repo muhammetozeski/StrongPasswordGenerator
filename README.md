@@ -6,7 +6,7 @@
   <p>
     <a href="https://github.com/muhammetozeski/StrongPasswordGenerator/releases"><img src="https://img.shields.io/github/v/release/muhammetozeski/StrongPasswordGenerator?style=for-the-badge&color=success" alt="Release"></a>
     <a href="https://dotnet.microsoft.com/download/dotnet/10.0"><img src="https://img.shields.io/badge/.NET-10.0-512BD4?style=for-the-badge&logo=dotnet" alt=".NET 10"></a>
-    <a href="https://github.com/muhammetozeski/StrongPasswordGenerator/blob/master/LICENSE"><img src="https://img.shields.io/github/license/muhammetozeski/StrongPasswordGenerator?style=for-the-badge&color=blue" alt="License"></a>
+    <a href="https://github.com/muhammetozeski/StrongPasswordGenerator/blob/master/LICENSE"><img src="https://img.shields.io/github/license/muhammetozeski/StrongPasswordGenerator?color=blue&style=for-the-badge" alt="License"></a>
   </p>
 </div>
 
