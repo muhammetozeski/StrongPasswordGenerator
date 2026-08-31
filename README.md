@@ -1,7 +1,7 @@
 <div align="center">
   <img src="icon.ico" width="128" alt="Strong Password Generator Logo">
   <h1>Strong Password Generator</h1>
-  <p>A highly secure, offline, and lightweight application designed to generate cryptographically strong passwords tailored to your precise needs.</p>
+  <p>An offline Windows password generator. Passwords come from the operating system's cryptographic random number generator, and you set either the character length or the entropy target in bits.</p>
   
   <p>
     <a href="https://github.com/muhammetozeski/StrongPasswordGenerator/releases"><img src="https://img.shields.io/github/v/release/muhammetozeski/StrongPasswordGenerator?style=for-the-badge&color=success" alt="Release"></a>
@@ -12,19 +12,20 @@
 
 ## 🛡️ Security Architecture
 
-Strong Password Generator is built with security as its primary directive:
-- **Offline Generation**: Does not require an internet connection, ensuring your passwords are never transmitted over the network.
-- **Cryptographic Randomness**: Utilizes `System.Security.Cryptography.RandomNumberGenerator` for true cryptographic randomness, avoiding the predictability of standard pseudo-random number generators.
-- **No Telemetry**: Absolutely zero telemetry, tracking, or data collection.
-- **Memory Safety**: Built on .NET 10, benefiting from advanced memory safety features to prevent buffer overflows and related exploits.
+- **Randomness source**: every character index and the final Fisher-Yates shuffle use `System.Security.Cryptography.RandomNumberGenerator`, not `System.Random`.
+- **Guaranteed set coverage**: one character is drawn from each enabled character set before the rest of the password is filled from the combined pool, then the whole array is shuffled.
+- **Offline**: the application makes no network calls. Nothing is uploaded, and there is no telemetry.
+- **No persistence**: generated passwords are never written to disk; the application stores no settings or history.
 
 ## ✨ Features
 
-- **Customizable Complexity**: Choose the exact length of your password.
-- **Character Sets**: Toggle uppercase letters, lowercase letters, numbers, and special symbols based on your requirements.
-- **Instant Copy**: One-click copying to clipboard for seamless workflow.
-- **Visual Feedback**: Real-time strength estimation and generation feedback.
-- **Modern UI**: Clean, intuitive Windows Forms interface optimized for speed.
+- **256-bit default**: on startup the entropy target is 256 bits, and the character length required to reach it is derived from the active character pool.
+- **Length and entropy stay in sync**: set the character length and the entropy is recalculated, or set an entropy target and the length is adjusted to match.
+- **Character sets**: uppercase, lowercase, digits, special symbols, extended symbols, spaces, plus an option to exclude ambiguous characters (`O 0 l 1 I | B 8`).
+- **Custom password analysis**: type your own password into the field and the length, character sets, entropy and crack time are recalculated for it.
+- **Attacker threat model**: a logarithmic slider from 100 H/s up to 10^15 H/s, with named reference profiles (online attack, single GPU, botnet, state-sponsored) and an optional quantum toggle that halves the effective entropy.
+- **Crack time estimate**: shown alongside a strength tier (Weak / Moderate / Strong / Ultra Secure) derived from that estimate.
+- **Clipboard copy**: one click, with visual confirmation.
 
 ## 🚀 Installation & Usage
 
