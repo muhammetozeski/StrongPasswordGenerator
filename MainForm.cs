@@ -11,6 +11,11 @@ public partial class MainForm : Form
 {
     #region Fields & Controls
 
+    /// <summary>
+    /// Entropy target the application starts with. The character length is derived from it on startup.
+    /// </summary>
+    private const int DefaultEntropyBits = 256;
+
     private bool _isUpdatingControls;
     private readonly System.Windows.Forms.Timer _copyFeedbackTimer = new();
 
@@ -48,7 +53,7 @@ public partial class MainForm : Form
         ConfigureFormWindow();
         BuildCustomUiLayout();
         InitializeCopyTimer();
-        UpdateMetricsAndGenerate();
+        SyncLengthToTargetBits();
     }
 
     #endregion
@@ -249,7 +254,7 @@ public partial class MainForm : Form
         _trackLength.ValueChanged += OnLengthTrackBarChanged;
 
         var bitsPanel = new FlowLayoutPanel { AutoSize = true, WrapContents = false, Dock = DockStyle.Fill, FlowDirection = FlowDirection.RightToLeft, Margin = new Padding(16, 0, 0, 0) };
-        _numBits = new NumericUpDown { Minimum = 10, Maximum = 512, Value = 96, Font = Theme.BodyFont, BackColor = Theme.CardElevatedColor, ForeColor = Theme.TextPrimaryColor, Size = new Size(94, 26) };
+        _numBits = new NumericUpDown { Minimum = 10, Maximum = 512, Value = DefaultEntropyBits, Font = Theme.BodyFont, BackColor = Theme.CardElevatedColor, ForeColor = Theme.TextPrimaryColor, Size = new Size(94, 26) };
         _numBits.ValueChanged += OnBitsNumericChanged;
         var lblBits = new Label { Text = "Entropy Bits:", Font = Theme.BodyFont, ForeColor = Theme.TextPrimaryColor, AutoSize = true, Anchor = AnchorStyles.Right };
         bitsPanel.Controls.Add(_numBits);
@@ -509,6 +514,15 @@ public partial class MainForm : Form
     private void OnBitsNumericChanged(object? sender, EventArgs e)
     {
         if (_isUpdatingControls) return;
+        SyncLengthToTargetBits();
+    }
+
+    /// <summary>
+    /// Derives the shortest character length that reaches the entropy target currently
+    /// shown in the bits box, applies it to the length controls, and generates a password.
+    /// </summary>
+    private void SyncLengthToTargetBits()
+    {
         _isUpdatingControls = true;
 
         var options = ReadCurrentOptions();
@@ -548,8 +562,15 @@ public partial class MainForm : Form
     {
         var options = ReadCurrentOptions();
         var password = PasswordGenerator.Generate(options);
+
+        // Writing the text box raises TextChanged, and that handler exists to analyse a password the
+        // user typed in by hand. Suppressing it here keeps the requested entropy target on screen
+        // instead of replacing it with the value the rounded-up character length happens to reach.
+        var wasUpdating = _isUpdatingControls;
+        _isUpdatingControls = true;
         _txtPassword.Text = password;
-        
+        _isUpdatingControls = wasUpdating;
+
         UpdateCrackTimeDisplay();
     }
 
