@@ -164,10 +164,10 @@ public static class PasswordGenerator
             char previous = password[i - 1];
             int asciiDiff = Math.Abs(current - previous);
 
-            if (asciiDiff == 0) totalEntropyBits += Math.Log2(2); // Tekrar
-            else if (asciiDiff == 1) totalEntropyBits += Math.Log2(4); // Sıralı
-            else if (IsSpatialAdjacent(current, previous)) totalEntropyBits += Math.Log2(8); // Klavyede yan yana
-            else totalEntropyBits += Math.Log2(poolSize); // Bağımsız
+            if (asciiDiff == 0) totalEntropyBits += Math.Log2(2); // Repeated character
+            else if (asciiDiff == 1) totalEntropyBits += Math.Log2(4); // Sequential character
+            else if (IsSpatialAdjacent(current, previous)) totalEntropyBits += Math.Log2(8); // Keyboard neighbour
+            else totalEntropyBits += Math.Log2(poolSize); // Independent character
         }
 
         return totalEntropyBits;
@@ -199,10 +199,10 @@ public static class PasswordGenerator
             totalEntropyBits = totalEntropyBits / 2.0;
         }
 
-        // 3. Zaman Hesabı (Ortalama kırma ihtimali uzayın yarısıdır)
+        // On average half of the key space is searched before a hit, hence one bit less.
         double effectiveBits = Math.Max(0, totalEntropyBits - 1);
 
-        // Güvenli üs alma işlemi (2^effectiveBits)
+        // Overflow-safe exponentiation (2^effectiveBits)
         BigInteger totalGuesses = BigInteger.One << (int)Math.Floor(effectiveBits);
 
         // Convert hashes/sec to hashes/ms. If H/s < 1000, we just do calculations in seconds first.
@@ -213,8 +213,8 @@ public static class PasswordGenerator
         BigInteger timeInSeconds = totalGuesses / hashesPerSecond;
         BigInteger timeInMs = timeInSeconds * 1000;
 
-        // Süre, evrenin yaşının kentilyonlarca katı olan UInt128 sınırını aşıyorsa
-        // fiziksel olarak sonsuzluk kabul edilir ve direkt maksimum değer dönülür.
+        // Anything past the UInt128 range is far beyond the age of the universe,
+        // so it is reported as the maximum value and rendered as "Infinity".
         if (timeInMs > UInt128.MaxValue)
         {
             return UInt128.MaxValue;
