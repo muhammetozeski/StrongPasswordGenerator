@@ -1,5 +1,4 @@
 using System.Linq;
-using System.Numerics;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -173,54 +172,54 @@ public static class PasswordGenerator
         return totalEntropyBits;
     }
 
-    public record ThreatProfile(string Title, BigInteger HashesPerSecond, string Description);
+    public record ThreatProfile(string Title, ulong HashesPerSecond, string Description);
 
     public static readonly ThreatProfile[] ThreatProfiles = new ThreatProfile[]
     {
-        new ThreatProfile("Online Web Attack", 100, "Slow web attacks targeting weak servers or systems with rate limiting (e.g., forum logins)."),
-        new ThreatProfile("Modern CPU (Ryzen/Core i9)", 2_000_000_000, "A fast modern desktop processor computing common fast hashes (e.g., MD5)."),
-        new ThreatProfile("Standard GPU (RTX 3060)", 30_000_000_000, "An entry-level graphics card used by a targeted attacker aiming at your accounts."),
-        new ThreatProfile("High-End GPU (RTX 4090)", 164_000_000_000, "A single state-of-the-art gaming graphics card used by a professional individual hacker."),
-        new ThreatProfile("Hacker Group (8x RTX 4090)", 1_312_000_000_000, "A small-scale mining rig consisting of 8 high-end graphics cards. Represents an organized group."),
-        new ThreatProfile("Medium Botnet", 100_000_000_000_000, "Massive botnet networks composed of thousands of compromised zombie computers."),
-        new ThreatProfile("State-Sponsored", 1_000_000_000_000_000, "The world's most advanced data centers and supercomputers. State-backed power targeting national defense.")
+        new ThreatProfile("Online Web Attack", 100UL, "Slow web attacks targeting weak servers or systems with rate limiting (e.g., forum logins)."),
+        new ThreatProfile("Modern CPU (Ryzen/Core i9)", 2_000_000_000UL, "A fast modern desktop processor computing common fast hashes (e.g., MD5)."),
+        new ThreatProfile("Standard GPU (RTX 3060)", 30_000_000_000UL, "An entry-level graphics card used by a targeted attacker aiming at your accounts."),
+        new ThreatProfile("High-End GPU (RTX 4090)", 164_000_000_000UL, "A single state-of-the-art gaming graphics card used by a professional individual hacker."),
+        new ThreatProfile("Hacker Group (8x RTX 4090)", 1_312_000_000_000UL, "A small-scale mining rig consisting of 8 high-end graphics cards. Represents an organized group."),
+        new ThreatProfile("Medium Botnet", 100_000_000_000_000UL, "Massive botnet networks composed of thousands of compromised zombie computers."),
+        new ThreatProfile("State-Sponsored", 1_000_000_000_000_000UL, "The world's most advanced data centers and supercomputers. State-backed power targeting national defense.")
     };
+
+    /// <summary>
+    /// log10 of the largest representable millisecond count. Anything above it is reported as "Infinity".
+    /// </summary>
+    private static readonly double Log10OfMaxMilliseconds = Math.Log10((double)UInt128.MaxValue);
 
     /// <summary>
     /// Estimates the time required to crack the password based on a specific threat profile and quantum vulnerability.
     /// </summary>
-    public static UInt128 CalculateCrackTimeMilliseconds(string password, BigInteger hashesPerSecond, bool quantumThreat)
+    public static UInt128 CalculateCrackTimeMilliseconds(string password, ulong hashesPerSecond, bool quantumThreat)
     {
-        if (string.IsNullOrEmpty(password)) return 0;
+        if (string.IsNullOrEmpty(password) || hashesPerSecond == 0) return 0;
 
         double totalEntropyBits = CalculateEntropyBits(password);
         if (quantumThreat)
         {
-            totalEntropyBits = totalEntropyBits / 2.0;
+            totalEntropyBits /= 2.0;
         }
 
         // On average half of the key space is searched before a hit, hence one bit less.
         double effectiveBits = Math.Max(0, totalEntropyBits - 1);
 
-        // Overflow-safe exponentiation (2^effectiveBits)
-        BigInteger totalGuesses = BigInteger.One << (int)Math.Floor(effectiveBits);
+        // The guess count is 2^effectiveBits, which leaves every fixed-width integer type behind
+        // once the password is longer than a couple of dozen characters. Only the magnitude is
+        // displayed, so the estimate is carried as a base-10 exponent:
+        // log10(ms) = effectiveBits * log10(2) - log10(hashes per second) + log10(1000).
+        double log10Milliseconds = (effectiveBits * Math.Log10(2)) - Math.Log10(hashesPerSecond) + 3;
 
-        // Convert hashes/sec to hashes/ms. If H/s < 1000, we just do calculations in seconds first.
-        // Actually, to avoid zero division if hashesPerSecond < 1000:
-        // timeInSeconds = totalGuesses / hashesPerSecond
-        // timeInMs = timeInSeconds * 1000
-        
-        BigInteger timeInSeconds = totalGuesses / hashesPerSecond;
-        BigInteger timeInMs = timeInSeconds * 1000;
-
-        // Anything past the UInt128 range is far beyond the age of the universe,
-        // so it is reported as the maximum value and rendered as "Infinity".
-        if (timeInMs > UInt128.MaxValue)
+        // Past this point the result is far beyond the age of the universe and no longer
+        // representable, so it is reported as the maximum value and rendered as "Infinity".
+        if (log10Milliseconds >= Log10OfMaxMilliseconds)
         {
             return UInt128.MaxValue;
         }
 
-        return (UInt128)timeInMs;
+        return log10Milliseconds <= 0 ? 0 : (UInt128)Math.Pow(10, log10Milliseconds);
     }
 
     /// <summary>

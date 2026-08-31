@@ -616,7 +616,7 @@ public partial class MainForm : Form
         var profiles = PasswordGenerator.ThreatProfiles;
         for (int i = profiles.Length - 1; i >= 0; i--)
         {
-            if (hashRate >= (ulong)profiles[i].HashesPerSecond)
+            if (hashRate >= profiles[i].HashesPerSecond)
             {
                 return profiles[i];
             }
